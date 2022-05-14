@@ -1,63 +1,56 @@
-name: Docker
+name: Manually Deploy to heroku
 
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
-on:
-  schedule:
-    - cron: '25 15 * * *'
-  push:
-    branches: [ main ]
-    # Publish semver tags as releases.
-    tags: [ 'v*.*.*' ]
-  pull_request:
-    branches: [ main ]
-
-env:
-  # Use docker.io for Docker Hub if empty
-  REGISTRY: ghcr.io
-  # github.repository as <account>/<repo>
-  IMAGE_NAME: ${{ github.repository }}
-
+on: workflow_dispatch
 
 jobs:
-  build:
+
+  deploy:
 
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
 
-      # Login against a Docker registry except on PR
-      # https://github.com/docker/login-action
-      - name: Log into registry ${{ env.REGISTRY }}
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v2
 
-      # Extract metadata (tags, labels) for Docker
-      # https://github.com/docker/metadata-action
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+      - uses: akhileshns/heroku-deploy@v3.12.12
 
-      # Build and push Docker image with Buildx (don't push on PR)
-      # https://github.com/docker/build-push-action
-      - name: Build and push Docker image
-        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
-          context: .
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+
+          heroku_app_name: ${{secrets.HEROKU_APP_NAME}}
+
+          heroku_email: ${{secrets.HEROKU_EMAIL}}
+
+          usedocker: true
+
+          docker_heroku_process_type: worker
+
+          stack: "container"
+
+          region: "eu"
+
+        env:
+
+          HD_APP_ID: ${{secrets.APP_ID}}
+
+          HD_API_HASH: ${{secrets.API_HASH}}
+
+          HD_TG_BOT_TOKEN: ${{secrets.TG_BOT_TOKEN}}
+
+          HD_AUTH_CHANNEL: ${{secrets.AUTH_CHANNEL}}
+
+          HD_OWNER_ID: ${{secrets.OWNER_ID}}
+
+          HD_CHUNK_SIZE: ${{secrets.CHUNK_SIZE}}
+
+          HD_EDIT_SLEEP_TIME_OUT: ${{secrets.EDIT_SLEEP_TIME_OUT}} 
+
+          HD_MAX_TIME_TO_WAIT_FOR_TORRENTS_TO_START: ${{secrets.MAX_TIME_TO_WAIT_FOR_TORRENTS_TO_START}}
+
+          HD_TG_MAX_FILE_SIZE: ${{secrets.TG_MAX_FILE_SIZE}}
+
+          HD_MAX_TG_SPLIT_FILE_SIZE: ${{secrets.MAX_TG_SPLIT_FILE_SIZE}}
+
+          HD_ARIA_TWO_STARTED_PORT: ${{secrets.ARIA_TWO_STARTED_PORT}}
+
